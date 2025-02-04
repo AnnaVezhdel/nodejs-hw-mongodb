@@ -20,7 +20,7 @@ export const getAllContacts = async ({
     contactsQuery.where('isFavourite').equals(filter.isFavourite);
   }
 
-  const total = await contactsCollection
+  const totalItems = await contactsCollection
     .find()
     .merge(contactsQuery)
     .countDocuments();
@@ -32,11 +32,13 @@ export const getAllContacts = async ({
     .sort({ [sortBy]: sortOrder })
     .exec();
 
-  const paginationData = calcPaginationData({ total, page, perPage });
+  const paginationData = calcPaginationData({ totalItems, page, perPage });
 
   return {
-    items,
-    total,
+    data: items,
+    page,
+    perPage,
+    totalItems,
     ...paginationData,
   };
 };
