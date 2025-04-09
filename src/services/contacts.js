@@ -1,3 +1,4 @@
+import createHttpError from 'http-errors';
 import { contactsCollection } from '../db/models/Contact.js';
 import { calcPaginationData } from '../utils/calcPaginationData.js';
 
@@ -56,7 +57,8 @@ export const addContact = (payload) => contactsCollection.create(payload);
 
 export const updateContact = async (filter, payload, options = {}) => {
   const { upsert = false } = options;
-  const result = await contactsCollection.findOneAndUpdate(
+  try {
+    const result = await contactsCollection.findOneAndUpdate(
     filter,
     payload,
     {
@@ -73,7 +75,13 @@ export const updateContact = async (filter, payload, options = {}) => {
   return {
     isNew,
     data: result.value,
-  };
+  };} catch (error) {
+    if (error.code === 11000) {
+      throw createHttpError(409, 'Duplicate key error – contact may already exist');
+    }
+  
+    throw createHttpError(error.status || 500, error.message || 'Failed to upsert contact');
+  }
 };
 
 export const deleteContact = (filter) =>

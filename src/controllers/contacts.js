@@ -68,11 +68,12 @@ export const upsertContactController = async (req, res) => {
   const { contactId: _id } = req.params;
   const { _id: userId } = req.user;
   
-  const { isNew, data } = await updateContact({contactId: _id}, { ...req.body, userId }, {
+  const { isNew, data } = await updateContact({_id, userId}, { ...req.body, userId }, {
     upsert: true,
   });
 
   const status = isNew ? 201 : 200;
+
 
   res.status(status).json({
     status,

@@ -30,9 +30,6 @@ const contactSchema = new Schema(
       ref: 'user',
       required: true,
     },
-    contactId: { 
-      type: String
-    },
   },
   {
     versionKey: false,
