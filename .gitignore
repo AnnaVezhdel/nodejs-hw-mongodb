@@ -1,5 +1,10 @@
 /node_modules
 
+/src/tmp/*
+!/src/tmp/.gitkeep
+/src/uploads/*
+!/src/uploads/.gitkeep
+
 .env
 
 .vscode
