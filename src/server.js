@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'node:path';
 
 import { getEnvVar } from './utils/getEnvVar.js';
 
@@ -12,6 +13,8 @@ import cookieParser from 'cookie-parser';
 
 export const setupServer = () => {
   const app = express();
+
+  app.use('/uploads', express.static(path.resolve('src', 'uploads')));
 
   app.use(cors());
   app.use(express.json());
