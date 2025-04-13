@@ -1,4 +1,4 @@
-import * as fs  from 'node:fs';
+import * as fs from 'node:fs';
 import path from 'node:path';
 import handlebars from 'handlebars';
 import createHttpError from 'http-errors';
@@ -17,8 +17,10 @@ import { getEnvVar } from '../utils/getEnvVar.js';
 
 const RESET_PASSWORD_TEMPLATE = fs.readFileSync(
   path.resolve('src/templates/reset-password.hbs'),
-  { encoding: 'utf-8'},
+  { encoding: 'utf-8' },
 );
+
+const template = handlebars.compile(RESET_PASSWORD_TEMPLATE);
 
 const createSessionData = () => ({
   accessToken: randomBytes(30).toString('base64'),
@@ -113,17 +115,14 @@ export async function requestResetPassword(email) {
   );
 
   try {
-    await sendEmail(
-    email,
-    'Reset your password',
-    template({resetToken})
-  );
+    await sendEmail(email, 'Reset your password', template({ resetToken }));
   } catch {
-    throw createHttpError(500, 'Failed to send the email, please try again later');
+    throw createHttpError(
+      500,
+      'Failed to send the email, please try again later',
+    );
   }
 }
-
-const template = handlebars.compile(RESET_PASSWORD_TEMPLATE);
 
 export async function resetPassword(token, newPassword) {
   try {
@@ -131,20 +130,21 @@ export async function resetPassword(token, newPassword) {
 
     const user = await UserCollection.findById(decoded.sub);
 
-    if(!user) {
+    if (!user) {
       throw createHttpError.NotFound('User not found');
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    await UserCollection.findByIdAndUpdate(user._id, { password: hashedPassword });
-  } catch(error) {
-
-    if(error.name === 'JsonWebTokenError') {
+    await UserCollection.findByIdAndUpdate(user._id, {
+      password: hashedPassword,
+    });
+  } catch (error) {
+    if (error.name === 'JsonWebTokenError') {
       throw createHttpError.Unauthorized('Token is expired or invalid');
     }
 
-    if(error.name === 'TokenExpiredError') {
+    if (error.name === 'TokenExpiredError') {
       throw createHttpError.Unauthorized('Token is expired');
     }
 
