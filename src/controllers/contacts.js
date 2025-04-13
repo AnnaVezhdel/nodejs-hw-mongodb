@@ -42,7 +42,7 @@ export const getContactByIdController = async (req, res) => {
   const { _id: userId } = req.user;
   const { contactId: _id } = req.params;
 
-  const contact = await getContact({_id, userId});
+  const contact = await getContact({ _id, userId });
   if (!contact) {
     throw createError(404, `Contact with id-${_id} not found`);
     // const error = new Error(`Contact with id=${contactId} not found`);
@@ -58,30 +58,41 @@ export const getContactByIdController = async (req, res) => {
 
 export const addContactController = async (req, res) => {
   let photo = null;
-  
-  if(getEnvVar('ENABLE_CLOUDINARY') === 'true') {
-    const result = await uploadToCloudinary(req.file.path);
-    photo = result.secure_url;
-  } else {
-    await fs.rename(req.file.path, path.resolve('src', 'uploads', req.file.filename));
 
-    photo = `http://localhost:3000/uploads/${req.file.filename}`;
+  try {
+    const { _id: userId } = req.user;
+
+    if (req.file) {
+      if (getEnvVar('ENABLE_CLOUDINARY') === 'true') {
+        const result = await uploadToCloudinary(req.file.path);
+        photo = result.secure_url;
+      } else {
+        await fs.rename(
+          req.file.path,
+          path.resolve('src', 'uploads', req.file.filename),
+        );
+        photo = `http://localhost:3000/uploads/${req.file.filename}`;
+      }
+    }
+
+    const data = await addContact({
+      ...req.body,
+      userId,
+      photo,
+    });
+
+    res.status(201).json({
+      status: 201,
+      message: 'Successfully created a contact!',
+      data,
+    });
+  } catch (error) {
+    console.error('❌ Error creating contact:', error);
+    res.status(500).json({
+      status: 500,
+      message: error.message || 'Something went wrong',
+    });
   }
-
-  const {_id: userId} = req.user;
-
-  const data = await addContact({
-    ...req.body, 
-    userId, 
-    photo,
-  });
-
-  res.status(201).json({
-    status: 201,
-    message: 'Successfully created a contact!',
-    data,
-    // дані створеного контакту
-  });
 };
 
 export const upsertContactController = async (req, res) => {
@@ -94,7 +105,10 @@ export const upsertContactController = async (req, res) => {
       const result = await uploadToCloudinary(req.file.path);
       photo = result.secure_url;
     } else {
-      await fs.rename(req.file.path, path.resolve('src', 'uploads', req.file.filename));
+      await fs.rename(
+        req.file.path,
+        path.resolve('src', 'uploads', req.file.filename),
+      );
       photo = `http://localhost:3000/uploads/${req.file.filename}`;
     }
   }
@@ -118,7 +132,6 @@ export const upsertContactController = async (req, res) => {
   });
 };
 
-
 export const patchContactController = async (req, res) => {
   const { contactId: _id } = req.params;
   const { _id: userId } = req.user;
@@ -129,7 +142,10 @@ export const patchContactController = async (req, res) => {
       const result = await uploadToCloudinary(req.file.path);
       photo = result.secure_url;
     } else {
-      await fs.rename(req.file.path, path.resolve('src', 'uploads', req.file.filename));
+      await fs.rename(
+        req.file.path,
+        path.resolve('src', 'uploads', req.file.filename),
+      );
       photo = `http://localhost:3000/uploads/${req.file.filename}`;
     }
   }
@@ -151,7 +167,6 @@ export const patchContactController = async (req, res) => {
     data: result.data,
   });
 };
-
 
 export const deleteContactController = async (req, res) => {
   const { contactId: _id } = req.params;
