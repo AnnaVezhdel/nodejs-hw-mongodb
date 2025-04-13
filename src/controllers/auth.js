@@ -26,19 +26,19 @@ export const loginController = async (req, res) => {
   const session = await authServices.login(req.body);
 
   setupSession(res, session);
-  
+
   res.json({
     status: 200,
     message: 'Successfully logged in',
     data: {
       accessToken: session.accessToken,
-    }
+    },
   });
 };
 
-export const refreshTokenController = async(req, res) => {
-  const {refreshToken, sessionId} = req.cookies;
-  const session = await authServices.refreshToken({refreshToken, sessionId});
+export const refreshTokenController = async (req, res) => {
+  const { refreshToken, sessionId } = req.cookies;
+  const session = await authServices.refreshToken({ refreshToken, sessionId });
 
   setupSession(res, session);
 
@@ -47,12 +47,12 @@ export const refreshTokenController = async(req, res) => {
     message: 'Successfully refreshed a session',
     data: {
       accessToken: session.accessToken,
-    }
+    },
   });
 };
 
-export const logoutController = async(req, res) => {
-  if(req.cookies.sessionId) {
+export const logoutController = async (req, res) => {
+  if (req.cookies.sessionId) {
     await authServices.logout(req.cookies.sessionId);
   }
 
@@ -63,15 +63,19 @@ export const logoutController = async(req, res) => {
 };
 
 export async function requestPasswordResetController(req, res) {
-  const {email} = req.body;
+  const { email } = req.body;
 
   await authServices.requestResetPassword(email);
 
-  
-};
+  res.json({
+    message: 'Reset password email has been successfully sent.',
+    status: 200,
+    data: {},
+  });
+}
 
 export async function resetPasswordController(req, res) {
-  const {token, password} = req.body;
+  const { token, password } = req.body;
 
   await authServices.resetPassword(token, password);
 
