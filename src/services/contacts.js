@@ -13,7 +13,7 @@ export const getAllContacts = async ({
   const skip = (page - 1) * limit;
   const contactsQuery = contactsCollection.find();
 
-  if (filter.type) {
+  if (filter.contactType) {
     contactsQuery.where('contactType').equals(filter.type);
   }
 
@@ -58,29 +58,32 @@ export const addContact = (payload) => contactsCollection.create(payload);
 export const updateContact = async (filter, payload, options = {}) => {
   const { upsert = false } = options;
   try {
-    const result = await contactsCollection.findOneAndUpdate(
-    filter,
-    payload,
-    {
+    const result = await contactsCollection.findOneAndUpdate(filter, payload, {
       new: true,
       upsert,
       includeResultMetadata: true,
-    },
-  );
+    });
 
-  if (!result || !result.value) return null;
+    if (!result || !result.value) return null;
 
-  const isNew = Boolean(result.lastErrorObject.upserted);
+    const isNew = Boolean(result.lastErrorObject.upserted);
 
-  return {
-    isNew,
-    data: result.value,
-  };} catch (error) {
+    return {
+      isNew,
+      data: result.value,
+    };
+  } catch (error) {
     if (error.code === 11000) {
-      throw createHttpError(409, 'Duplicate key error – contact may already exist');
+      throw createHttpError(
+        409,
+        'Duplicate key error – contact may already exist',
+      );
     }
-  
-    throw createHttpError(error.status || 500, error.message || 'Failed to upsert contact');
+
+    throw createHttpError(
+      error.status || 500,
+      error.message || 'Failed to upsert contact',
+    );
   }
 };
 
