@@ -13,12 +13,12 @@ const parseContactType = (type) => {
   const isValidType = typeList.includes(type) ? type : {};
   return isValidType;
 };
-export const parseFilterParams = ({ type, isFavourite }) => {
+export const parseFilterParams = ({ contactType, isFavourite }) => {
   const parsedIsFavourite = parseBoolean(isFavourite);
-  const parsedContactType = parseContactType(type);
+  const parsedContactType = parseContactType(contactType);
 
   return {
-    type: parsedContactType,
+    contactType: parsedContactType,
     isFavourite: parsedIsFavourite,
   };
 };
