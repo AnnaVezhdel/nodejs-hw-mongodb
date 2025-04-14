@@ -98,6 +98,8 @@ export const getUser = (filter) => UserCollection.findOne(filter);
 
 export const getSession = (filter) => SessionCollection.findOne(filter);
 
+const template = handlebars.compile(RESET_PASSWORD_TEMPLATE);
+
 export async function requestResetPassword(email) {
   const user = await UserCollection.findOne({ email });
 

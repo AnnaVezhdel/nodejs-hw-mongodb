@@ -59,21 +59,51 @@ export const getContactByIdController = async (req, res) => {
 export const addContactController = async (req, res) => {
   let photo = null;
 
-  try {
-    const { _id: userId } = req.user;
+  if (getEnvVar('ENABLE_CLOUDINARY') === 'true') {
+    const result = await uploadToCloudinary(req.file.path);
+    photo = result.secure_url;
+  } else {
+    await fs.rename(
+      req.file.path,
+      path.resolve('src', 'uploads', req.file.filename),
+    );
 
-    if (req.file) {
-      if (getEnvVar('ENABLE_CLOUDINARY') === 'true') {
-        const result = await uploadToCloudinary(req.file.path);
-        photo = result.secure_url;
-      } else {
-        await fs.rename(
-          req.file.path,
-          path.resolve('src', 'uploads', req.file.filename),
-        );
-        photo = `http://localhost:3000/uploads/${req.file.filename}`;
+    try {
+      const { _id: userId } = req.user;
+
+      if (req.file) {
+        if (getEnvVar('ENABLE_CLOUDINARY') === 'true') {
+          const result = await uploadToCloudinary(req.file.path);
+          photo = result.secure_url;
+        } else {
+          await fs.rename(
+            req.file.path,
+            path.resolve('src', 'uploads', req.file.filename),
+          );
+          photo = `http://localhost:3000/uploads/${req.file.filename}`;
+        }
       }
+
+      const data = await addContact({
+        ...req.body,
+        userId,
+        photo,
+      });
+
+      res.status(201).json({
+        status: 201,
+        message: 'Successfully created a contact!',
+        data,
+      });
+    } catch (error) {
+      console.error('❌ Error creating contact:', error);
+      res.status(500).json({
+        status: 500,
+        message: error.message || 'Something went wrong',
+      });
     }
+
+    const { _id: userId } = req.user;
 
     const data = await addContact({
       ...req.body,
@@ -85,52 +115,43 @@ export const addContactController = async (req, res) => {
       status: 201,
       message: 'Successfully created a contact!',
       data,
-    });
-  } catch (error) {
-    console.error('❌ Error creating contact:', error);
-    res.status(500).json({
-      status: 500,
-      message: error.message || 'Something went wrong',
+      // дані створеного контакту
     });
   }
 };
+// export const upsertContactController = async (req, res) => {
+//   const { contactId: _id } = req.params;
+//   const { _id: userId } = req.user;
 
-export const upsertContactController = async (req, res) => {
-  const { contactId: _id } = req.params;
-  const { _id: userId } = req.user;
+//   let photo;
+//   if (req.file) {
+//     if (getEnvVar('ENABLE_CLOUDINARY') === 'true') {
+//       const result = await uploadToCloudinary(req.file.path);
+//       photo = result.secure_url;
+//     } else {
+//       await fs.rename(req.file.path, path.resolve('src', 'uploads', req.file.filename));
+//       photo = `http://localhost:3000/uploads/${req.file.filename}`;
+//     }
+//   }
 
-  let photo;
-  if (req.file) {
-    if (getEnvVar('ENABLE_CLOUDINARY') === 'true') {
-      const result = await uploadToCloudinary(req.file.path);
-      photo = result.secure_url;
-    } else {
-      await fs.rename(
-        req.file.path,
-        path.resolve('src', 'uploads', req.file.filename),
-      );
-      photo = `http://localhost:3000/uploads/${req.file.filename}`;
-    }
-  }
+//   const updateData = {
+//     ...req.body,
+//     userId,
+//     ...(photo && { photo }),
+//   };
 
-  const updateData = {
-    ...req.body,
-    userId,
-    ...(photo && { photo }),
-  };
+//   const { isNew, data } = await updateContact({ _id, userId }, updateData, {
+//     upsert: true,
+//   });
 
-  const { isNew, data } = await updateContact({ _id, userId }, updateData, {
-    upsert: true,
-  });
+//   const status = isNew ? 201 : 200;
 
-  const status = isNew ? 201 : 200;
-
-  res.status(status).json({
-    status,
-    message: 'Successfully upserted a contact!',
-    data,
-  });
-};
+//   res.status(status).json({
+//     status,
+//     message: 'Successfully upserted a contact!',
+//     data,
+//   });
+// };
 
 export const patchContactController = async (req, res) => {
   const { contactId: _id } = req.params;
