@@ -20,6 +20,8 @@ const RESET_PASSWORD_TEMPLATE = fs.readFileSync(
   { encoding: 'utf-8' },
 );
 
+const template = handlebars.compile(RESET_PASSWORD_TEMPLATE);
+
 const createSessionData = () => ({
   accessToken: randomBytes(30).toString('base64'),
   refreshToken: randomBytes(30).toString('base64'),

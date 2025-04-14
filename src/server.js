@@ -1,9 +1,8 @@
+import { getEnvVar } from './utils/getEnvVar.js';
 import express from 'express';
 import cors from 'cors';
 import path from 'node:path';
 import * as fs from 'node:fs';
-
-import { getEnvVar } from './utils/getEnvVar.js';
 
 import authRouter from './routers/auth.js';
 import contactsRouter from './routers/contacts.js';
